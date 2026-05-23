@@ -139,11 +139,22 @@ async function runRealScan() {
   const percent = document.querySelector("#scanPercent");
   const bar = document.querySelector("#scanBar");
   const findings = document.querySelector(".live-findings");
+  const steps = document.querySelectorAll("[data-scan-step]");
 
   button.disabled = true;
   button.textContent = "正在扫描...";
   percent.textContent = "扫描中";
   bar.style.width = "42%";
+  steps.forEach(step => {
+    step.classList.remove("complete", "done");
+    step.classList.add("pending");
+  });
+  const appDataStep = document.querySelector("[data-scan-step='appData']");
+  if (appDataStep) {
+    appDataStep.classList.remove("pending", "complete");
+    appDataStep.classList.add("active");
+    appDataStep.querySelector("p").textContent = "正在分析微信、钉钉";
+  }
   findings.innerHTML = `
     <div><span class="status blue"></span>正在读取 C 盘常见占用位置</div>
     <div><span class="status amber"></span>这里只扫描，不会处理文件</div>
@@ -157,6 +168,10 @@ async function runRealScan() {
 
     percent.textContent = "100%";
     bar.style.width = "100%";
+    setScanStepDone("safe", `已发现 ${formatBytes(safe)}`);
+    setScanStepDone("files", `已发现 ${formatBytes(files)}`);
+    setScanStepDone("appData", `已发现 ${formatBytes(appData)}`);
+    setScanStepDone("apps", "暂未开放自动迁移");
     findings.innerHTML = `
       <div><span class="status green"></span>可安全整理 ${formatBytes(safe)}</div>
       <div><span class="status blue"></span>个人文件 ${formatBytes(files)}</div>
@@ -176,6 +191,17 @@ async function runRealScan() {
   } finally {
     button.disabled = false;
   }
+}
+
+function setScanStepDone(id, text) {
+  const step = document.querySelector(`[data-scan-step='${id}']`);
+  if (!step) return;
+  step.classList.remove("active", "pending");
+  step.classList.add("complete", "done");
+  const miniProgress = step.querySelector(".mini-progress");
+  if (miniProgress) miniProgress.remove();
+  const paragraph = step.querySelector("p");
+  if (paragraph) paragraph.textContent = text;
 }
 
 function updateResultNumbers(safe, files, appData) {
@@ -211,33 +237,47 @@ async function runRealProcessing() {
   processingStarted = true;
   const title = document.querySelector("#view-processing h1");
   const button = document.querySelector("#finishProcess");
+  const processPercent = document.querySelector("#processPercent");
+  const processBar = document.querySelector("#processBar");
   title.textContent = "正在执行低风险安全清理";
   button.disabled = true;
   button.textContent = "处理中...";
+  updateProcessProgress(8, "正在准备恢复入口");
 
   try {
+    updateProcessProgress(28, "正在整理低风险文件");
     const result = await request("/api/clean-safe", { method: "POST" });
+    updateProcessProgress(78, "正在写入处理记录");
     const achievements = document.querySelectorAll("#view-report .achievement-grid strong");
     if (achievements[0]) achievements[0].textContent = formatBytes(result.movedBytes);
     if (achievements[1]) achievements[1].textContent = "待整理";
     if (achievements[3]) achievements[3].textContent = `${result.movedCount}项`;
+    updateProcessProgress(100, "处理完成");
     title.textContent = "低风险清理已完成";
   } catch {
     title.textContent = "暂时无法执行真实清理，请确认从本地运行入口打开";
+    updateProcessProgress(0, "处理未完成");
   } finally {
     button.disabled = false;
     button.textContent = "查看完成报告";
+  }
+
+  function updateProcessProgress(value, label) {
+    if (processPercent) processPercent.textContent = `${value}%`;
+    if (processBar) processBar.style.width = `${value}%`;
+    if (label) title.textContent = label;
   }
 }
 
 async function organizeRealFiles(button) {
   const oldText = button.textContent;
   button.disabled = true;
-  button.textContent = "整理中...";
+  button.textContent = "整理中 0%";
 
   try {
+    button.textContent = "整理中 35%";
     const result = await request("/api/organize-files", { method: "POST" });
-    button.textContent = `已转移 ${formatBytes(result.movedBytes)}`;
+    button.textContent = `完成 100% · ${formatBytes(result.movedBytes)}`;
   } catch {
     button.textContent = "请从本地运行入口打开";
     setTimeout(() => {

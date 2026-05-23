@@ -142,10 +142,10 @@
             <div class="progress-track"><span id="scanBar"></span></div>
           </div>
           <div class="scan-grid">
-            <div class="scan-step done"><span></span><strong>基础垃圾</strong><p>已发现 6.8GB</p></div>
-            <div class="scan-step done"><span></span><strong>个人大文件</strong><p>已发现 24.1GB</p></div>
-            <div class="scan-step active"><span></span><strong>软件数据</strong><p>正在分析微信、钉钉</p><div class="mini-progress"><i></i></div></div>
-            <div class="scan-step pending"><span></span><strong>可迁移软件</strong><p>排队等待检测</p></div>
+            <div class="scan-step done" data-scan-step="safe"><span></span><strong>基础垃圾</strong><p>已发现 6.8GB</p></div>
+            <div class="scan-step done" data-scan-step="files"><span></span><strong>个人大文件</strong><p>已发现 24.1GB</p></div>
+            <div class="scan-step active" data-scan-step="appData"><span></span><strong>软件数据</strong><p>正在分析微信、钉钉</p><div class="mini-progress"><i></i></div></div>
+            <div class="scan-step pending" data-scan-step="apps"><span></span><strong>可迁移软件</strong><p>排队等待检测</p></div>
           </div>
           <div class="live-findings">
             <div><span class="status green"></span>可放心清理 6.8GB</div>
@@ -234,7 +234,8 @@
           <div class="processing-head">
             <span class="eyebrow">正在处理</span>
             <h1>正在转移微信文件，请保持电脑开机</h1>
-            <div class="progress-track large"><span></span></div>
+            <div class="progress-label processing-progress-label"><strong>处理进度</strong><span id="processPercent">0%</span></div>
+            <div class="progress-track large"><span id="processBar"></span></div>
           </div>
           <div class="process-layout">
             <div class="step-list">

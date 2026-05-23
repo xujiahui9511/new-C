@@ -396,6 +396,7 @@ p { color: var(--muted); line-height: 1.65; }
   margin-bottom: 12px;
 }
 .scan-step.done > span, .process-step.done > span { background: var(--green); border-color: var(--green); }
+.scan-step.done .mini-progress { display: none; }
 .scan-step.active, .process-step.active { border-color: rgba(21,127,134,.55); background: #eefafa; }
 .scan-step.active > span {
   border-color: rgba(21,127,134,.2);
@@ -407,6 +408,15 @@ p { color: var(--muted); line-height: 1.65; }
 .scan-step.pending > span {
   background: transparent;
   border-color: #b7c5d3;
+}
+.scan-step.complete {
+  border-color: rgba(40,166,106,.35);
+  background: #f4fbf7;
+}
+.scan-step.complete > span {
+  background: var(--green);
+  border-color: var(--green);
+  animation: none;
 }
 .scan-step p { margin-bottom: 12px; }
 .mini-progress {
@@ -593,7 +603,11 @@ p { color: var(--muted); line-height: 1.65; }
 .processing-panel { padding: 28px; }
 .processing-head { margin-bottom: 22px; }
 .progress-track.large { height: 14px; }
-.progress-track.large span { width: 62%; }
+.progress-track.large span { width: 0%; }
+.processing-progress-label {
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
 .process-layout {
   display: grid;
   grid-template-columns: 1fr 310px;
