@@ -294,7 +294,7 @@ async function checkUpdate() {
   };
 
   try {
-    const response = await fetch(UPDATE_INFO_URL);
+    const response = await fetch(`${UPDATE_INFO_URL}?t=${Date.now()}`);
     if (!response.ok) return fallback;
     const remote = await response.json();
     return { ...fallback, ...remote, ok: true };
