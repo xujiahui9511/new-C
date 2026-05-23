@@ -3,6 +3,7 @@ const fs = require("fs");
 const fsp = require("fs/promises");
 const path = require("path");
 const os = require("os");
+const { execFile } = require("child_process");
 
 const PORT = 4317;
 const ROOT = __dirname;
@@ -18,9 +19,22 @@ const validActivationCodes = new Set([
   "ZXGJ-8888"
 ]);
 const ACTIVATION_FILE = path.join(userHome, "AppData", "Local", "CpanCleaner", "activation.json");
+const HISTORY_FILE = path.join(userHome, "AppData", "Local", "CpanCleaner", "history.json");
 
 let latestScan = null;
 let latestScanTime = 0;
+
+function runPowerShell(script) {
+  return new Promise((resolve, reject) => {
+    execFile("powershell.exe", ["-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", script], {
+      windowsHide: true,
+      timeout: 15000
+    }, (error, stdout) => {
+      if (error) return reject(error);
+      resolve(stdout);
+    });
+  });
+}
 
 function logError(error) {
   const message = `[${new Date().toISOString()}] ${error && error.stack ? error.stack : error}\n`;
@@ -81,6 +95,51 @@ async function readActivation() {
 async function writeActivation(data) {
   await fsp.mkdir(path.dirname(ACTIVATION_FILE), { recursive: true });
   await fsp.writeFile(ACTIVATION_FILE, JSON.stringify(data, null, 2), "utf8");
+}
+
+async function readHistory() {
+  try {
+    const text = await fsp.readFile(HISTORY_FILE, "utf8");
+    const data = JSON.parse(text);
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+}
+
+async function addHistory(entry) {
+  const history = await readHistory();
+  history.unshift({
+    ...entry,
+    at: new Date().toISOString()
+  });
+  await fsp.mkdir(path.dirname(HISTORY_FILE), { recursive: true });
+  await fsp.writeFile(HISTORY_FILE, JSON.stringify(history.slice(0, 20), null, 2), "utf8");
+}
+
+async function diskState() {
+  const script = "Get-CimInstance Win32_LogicalDisk -Filter \\\"DeviceID='C:'\\\" | Select-Object DeviceID,Size,FreeSpace | ConvertTo-Json -Compress";
+  const output = await runPowerShell(script);
+  const disk = JSON.parse(output);
+  const totalBytes = Number(disk.Size || 0);
+  const freeBytes = Number(disk.FreeSpace || 0);
+  const usedBytes = Math.max(totalBytes - freeBytes, 0);
+  const usedPercent = totalBytes > 0 ? Math.round((usedBytes / totalBytes) * 100) : 0;
+  const status = usedPercent >= 90 ? "空间不足" : usedPercent >= 75 ? "偏紧张" : "健康";
+  const history = await readHistory();
+
+  return {
+    ok: true,
+    drive: "C:",
+    totalBytes,
+    freeBytes,
+    usedBytes,
+    usedPercent,
+    status,
+    lastHistory: history[0] || null,
+    scanned: Boolean(latestScan),
+    scanTotals: latestScan ? latestScan.totals : null
+  };
 }
 
 async function activationStatus() {
@@ -298,10 +357,20 @@ async function cleanSafe() {
     }
   }
 
+  const movedBytes = moved.reduce((sum, file) => sum + file.size, 0);
+  if (moved.length > 0 || movedBytes > 0) {
+    await addHistory({
+      type: "clean",
+      movedCount: moved.length,
+      movedBytes,
+      warehouse: targetFolder
+    });
+  }
+
   return {
     ok: true,
     movedCount: moved.length,
-    movedBytes: moved.reduce((sum, file) => sum + file.size, 0),
+    movedBytes,
     warehouse: targetFolder,
     moved
   };
@@ -323,10 +392,20 @@ async function organizeFiles() {
     }
   }
 
+  const movedBytes = moved.reduce((sum, file) => sum + file.size, 0);
+  if (moved.length > 0 || movedBytes > 0) {
+    await addHistory({
+      type: "organize",
+      movedCount: moved.length,
+      movedBytes,
+      warehouse: targetFolder
+    });
+  }
+
   return {
     ok: true,
     movedCount: moved.length,
-    movedBytes: moved.reduce((sum, file) => sum + file.size, 0),
+    movedBytes,
     warehouse: targetFolder,
     moved
   };
@@ -424,6 +503,7 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://localhost:${PORT}`);
     if (url.pathname === "/api/health") return send(res, 200, { ok: true, warehouse: defaultWarehouse });
+    if (url.pathname === "/api/disk-state") return send(res, 200, await diskState());
     if (url.pathname === "/api/activation-status") return send(res, 200, await activationStatus());
     if (url.pathname === "/api/activate-first-use" && req.method === "POST") return send(res, 200, await activateFirstUse(req));
     if (url.pathname === "/api/scan") return send(res, 200, await scan());

@@ -39,6 +39,7 @@ const guideSteps = [
 
 let guideIndex = 0;
 let latestScanData = null;
+let latestDiskState = null;
 let processingStarted = false;
 let firstUseActivated = false;
 let pendingProtectedAction = null;
@@ -59,6 +60,70 @@ async function request(path, options = {}) {
   const response = await fetch(`${API_BASE}${path}`, options);
   if (!response.ok) throw new Error("操作没有完成");
   return response.json();
+}
+
+function updateHomeMeter(percent, status) {
+  const value = document.querySelector(".meter-value");
+  if (!value) return;
+  const clamped = Math.max(0, Math.min(100, Number(percent) || 0));
+  value.style.strokeDashoffset = String(302 - (302 * clamped / 100));
+  value.style.stroke = status === "空间不足" ? "#c2410c" : status === "偏紧张" ? "#df8f0d" : "#178b8d";
+}
+
+function describeHistory(entry) {
+  if (!entry) return null;
+  const action = entry.type === "organize" ? "整理" : "清理";
+  const date = entry.at ? new Date(entry.at) : null;
+  const timeText = date && !Number.isNaN(date.getTime()) ? date.toLocaleDateString("zh-CN") : "最近一次";
+  return {
+    title: `${action} ${formatBytes(entry.movedBytes)}`,
+    detail: `${timeText} · 处理 ${entry.movedCount || 0} 项`
+  };
+}
+
+async function loadHomeState() {
+  const statusText = document.querySelector("#homeDiskStatus");
+  const percentText = document.querySelector("#homeDiskPercent");
+  const summaryText = document.querySelector("#homeDiskSummary");
+  const estimateText = document.querySelector("#homeMoveEstimate");
+  const lastTitle = document.querySelector("#homeLastCleanTitle");
+  const lastDetail = document.querySelector("#homeLastCleanDetail");
+
+  try {
+    const state = await request("/api/disk-state");
+    latestDiskState = state;
+    if (statusText) statusText.textContent = state.status || "未知";
+    if (percentText) percentText.textContent = `${state.usedPercent}%`;
+    if (summaryText) summaryText.textContent = `剩余 ${formatBytes(state.freeBytes)}，总容量 ${formatBytes(state.totalBytes)}。建议先扫描可安全释放和可转移内容。`;
+    updateHomeMeter(state.usedPercent, state.status);
+
+    if (estimateText) {
+      if (state.scanTotals) {
+        const movable = (state.scanTotals.files || 0) + (state.scanTotals.appData || 0);
+        estimateText.textContent = `已扫描到 ${formatBytes(movable)} 可进一步确认整理。`;
+      } else {
+        estimateText.textContent = "扫描后显示可整理空间。";
+      }
+    }
+
+    const history = describeHistory(state.lastHistory);
+    if (history) {
+      if (lastTitle) lastTitle.textContent = history.title;
+      if (lastDetail) lastDetail.textContent = history.detail;
+    } else {
+      if (lastTitle) lastTitle.textContent = "暂无真实记录";
+      if (lastDetail) lastDetail.textContent = "完成一次清理或整理后，这里会自动显示。";
+    }
+  } catch {
+    latestDiskState = null;
+    if (statusText) statusText.textContent = "未连接";
+    if (percentText) percentText.textContent = "--";
+    if (summaryText) summaryText.textContent = "请从桌面的正式入口打开，才能读取这台电脑的真实 C 盘数据。";
+    if (estimateText) estimateText.textContent = "连接成功后再显示可整理空间。";
+    if (lastTitle) lastTitle.textContent = "暂无真实记录";
+    if (lastDetail) lastDetail.textContent = "当前没有读取到真实清理记录。";
+    updateHomeMeter(0, "健康");
+  }
 }
 
 async function refreshActivationStatus() {
@@ -108,6 +173,10 @@ function showView(name) {
 
   if (["onboarding", "save", "results", "confirm", "processing", "report"].includes(name)) {
     navItems.forEach(item => item.classList.remove("active"));
+  }
+
+  if (name === "home") {
+    loadHomeState();
   }
 
   if (name === "checkup") {
@@ -161,6 +230,7 @@ async function runRealScan() {
   `;
 
   try {
+    await loadHomeState();
     latestScanData = await request("/api/scan");
     const safe = latestScanData.totals.safe;
     const files = latestScanData.totals.files;
@@ -180,6 +250,7 @@ async function runRealScan() {
 
     updateResultNumbers(safe, files, appData);
     updateFileRows();
+    loadHomeState();
     button.textContent = "查看扫描结果";
   } catch {
     percent.textContent = "未连接";
@@ -214,6 +285,22 @@ function updateResultNumbers(safe, files, appData) {
   if (confirm[0]) confirm[0].textContent = formatBytes(safe);
   if (confirm[1]) confirm[1].textContent = formatBytes(files);
   if (confirm[2]) confirm[2].textContent = "可查看";
+
+  if (latestDiskState) {
+    const beforeFree = document.querySelector("#confirmBeforeFree");
+    const beforeStatus = document.querySelector("#confirmBeforeStatus");
+    const afterFree = document.querySelector("#confirmAfterFree");
+    const afterStatus = document.querySelector("#confirmAfterStatus");
+    const estimatedFree = Math.min(latestDiskState.totalBytes, latestDiskState.freeBytes + safe + files);
+    const estimatedUsedPercent = latestDiskState.totalBytes > 0
+      ? Math.round(((latestDiskState.totalBytes - estimatedFree) / latestDiskState.totalBytes) * 100)
+      : 0;
+    const estimatedStatus = estimatedUsedPercent >= 90 ? "空间不足" : estimatedUsedPercent >= 75 ? "偏紧张" : "健康";
+    if (beforeFree) beforeFree.textContent = `剩余 ${formatBytes(latestDiskState.freeBytes)}`;
+    if (beforeStatus) beforeStatus.textContent = `状态：${latestDiskState.status}`;
+    if (afterFree) afterFree.textContent = `预计剩余 ${formatBytes(estimatedFree)}`;
+    if (afterStatus) afterStatus.textContent = `状态：${estimatedStatus}`;
+  }
 }
 
 function updateFileRows() {
@@ -253,6 +340,7 @@ async function runRealProcessing() {
     if (achievements[1]) achievements[1].textContent = "待整理";
     if (achievements[3]) achievements[3].textContent = `${result.movedCount}项`;
     updateProcessProgress(100, "处理完成");
+    loadHomeState();
     title.textContent = "低风险清理已完成";
   } catch {
     title.textContent = "暂时无法执行真实清理，请确认从本地运行入口打开";
@@ -278,6 +366,7 @@ async function organizeRealFiles(button) {
     button.textContent = "整理中 35%";
     const result = await request("/api/organize-files", { method: "POST" });
     button.textContent = `完成 100% · ${formatBytes(result.movedBytes)}`;
+    loadHomeState();
   } catch {
     button.textContent = "请从本地运行入口打开";
     setTimeout(() => {
@@ -477,3 +566,4 @@ if (confirmFirstActivationButton) {
 
 updateGuide();
 refreshActivationStatus();
+loadHomeState();

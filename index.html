@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>C盘安心管家</title>
+  <link rel="icon" href="assets/app-icon.ico">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -104,28 +105,28 @@
           <div class="health-panel">
             <div class="health-title">
               <span>C盘状态</span>
-              <strong>偏紧张</strong>
+              <strong id="homeDiskStatus">读取中</strong>
             </div>
             <div class="meter">
               <svg viewBox="0 0 120 120" aria-hidden="true">
                 <circle cx="60" cy="60" r="48"></circle>
                 <circle class="meter-value" cx="60" cy="60" r="48"></circle>
               </svg>
-              <div><strong>87%</strong><span>已使用</span></div>
+              <div><strong id="homeDiskPercent">--</strong><span>已使用</span></div>
             </div>
-            <p>剩余 18.4GB，建议先扫描可安全释放和可转移内容。</p>
+            <p id="homeDiskSummary">正在读取这台电脑的 C 盘真实空间。</p>
             <button class="btn primary wide" data-go="checkup">开始 C 盘体检</button>
           </div>
           <div class="quick-panel">
             <h2>下一步建议</h2>
             <div class="suggestion-line"><span class="rank">1</span><div><strong>扫描 C 盘占用</strong><p>先看清楚谁占空间，不会删除任何东西。</p></div></div>
-            <div class="suggestion-line"><span class="rank">2</span><div><strong>整理微信和下载文件</strong><p>预计能转移 28GB 到 D 盘。</p></div></div>
+            <div class="suggestion-line"><span class="rank">2</span><div><strong>整理微信和下载文件</strong><p id="homeMoveEstimate">扫描后显示可整理空间。</p></div></div>
             <div class="suggestion-line"><span class="rank">3</span><div><strong>查看可搬家的软件</strong><p>只处理能恢复、风险可控的软件。</p></div></div>
           </div>
           <div class="mini-report">
             <h2>上次清理</h2>
-            <strong>释放 9.6GB</strong>
-            <span>转移 21.8GB · 7 天前</span>
+            <strong id="homeLastCleanTitle">暂无真实记录</strong>
+            <span id="homeLastCleanDetail">完成一次清理或整理后，这里会自动显示。</span>
           </div>
         </div>
       </section>
@@ -213,9 +214,9 @@
         </div>
         <div class="confirm-board">
           <div class="before-after">
-            <div><span>处理前</span><strong>剩余 18.4GB</strong><p>状态：偏紧张</p></div>
+            <div><span>处理前</span><strong id="confirmBeforeFree">等待扫描</strong><p id="confirmBeforeStatus">状态：扫描后显示</p></div>
             <div class="arrow"></div>
-            <div><span>处理后</span><strong>预计剩余 45.0GB</strong><p>状态：健康</p></div>
+            <div><span>处理后</span><strong id="confirmAfterFree">等待扫描</strong><p id="confirmAfterStatus">状态：扫描后预估</p></div>
           </div>
           <div class="result-summary">
             <div><span>预计释放</span><strong>8.2GB</strong></div>
@@ -333,8 +334,7 @@
       <section class="view" id="view-reports">
         <div class="page-header compact"><span class="eyebrow">报告记录</span><h1>历史清理结果</h1><p>查看每次释放、转移和健康变化。</p></div>
         <div class="restore-list">
-          <div class="restore-item report-entry"><div><strong>今天的完整报告</strong><p>释放 8.2GB，转移 18.4GB，处理 2 项。</p></div><button class="btn small">打开</button></div>
-          <div class="restore-item report-entry"><div><strong>7 天前的清理报告</strong><p>释放 9.6GB，转移 21.8GB，处理 5 项。</p></div><button class="btn small">打开</button></div>
+          <div class="restore-item report-entry"><div><strong>暂无真实报告</strong><p>完成一次真实清理或整理后，这里会显示记录。</p></div><button class="btn small">查看</button></div>
         </div>
       </section>
 
