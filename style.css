@@ -731,6 +731,87 @@ p { color: var(--muted); line-height: 1.65; }
   box-shadow: 0 0 0 3px rgba(21, 127, 134, .12);
 }
 
+.activation-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: none;
+  place-items: center;
+  padding: 24px;
+  background: rgba(17, 28, 42, .42);
+}
+.activation-modal.show {
+  display: grid;
+}
+.activation-dialog {
+  width: min(920px, 100%);
+  display: grid;
+  grid-template-columns: 1.15fr .85fr;
+  gap: 22px;
+  position: relative;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 28px;
+  box-shadow: 0 28px 70px rgba(17, 28, 42, .24);
+}
+.modal-close {
+  position: absolute;
+  right: 16px;
+  top: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+}
+.activation-dialog-copy h1 {
+  margin-bottom: 12px;
+}
+.device-code-box {
+  margin: 22px 0 12px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel-soft);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px 12px;
+  align-items: center;
+}
+.device-code-box span {
+  color: var(--muted);
+}
+.device-code-box strong {
+  font-size: 24px;
+  letter-spacing: 0;
+}
+.device-code-box .btn {
+  grid-row: span 2;
+}
+.muted-tip {
+  font-size: 14px;
+}
+.activation-dialog-side {
+  display: grid;
+  gap: 16px;
+}
+.activation-dialog-side img {
+  width: 100%;
+  max-height: 330px;
+  object-fit: contain;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+}
+#firstActivationMessage {
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .switch { position: relative; width: 48px; height: 28px; display: inline-flex; }
 .switch input { display: none; }
 .switch span {
@@ -795,6 +876,9 @@ p { color: var(--muted); line-height: 1.65; }
   .activation-card img {
     width: min(240px, 100%);
     height: auto;
+  }
+  .activation-dialog {
+    grid-template-columns: 1fr;
   }
   .topbar { display: block; }
   .pill-tabs { margin-top: 12px; }

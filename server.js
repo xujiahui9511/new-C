@@ -17,6 +17,7 @@ const validActivationCodes = new Set([
   "CPAN-UPDATE-2026",
   "ZXGJ-8888"
 ]);
+const ACTIVATION_FILE = path.join(userHome, "AppData", "Local", "CpanCleaner", "activation.json");
 
 let latestScan = null;
 let latestScanTime = 0;
@@ -47,6 +48,81 @@ function formatError(error) {
 
 function joinHome(...parts) {
   return path.join(userHome, ...parts);
+}
+
+function simpleHash(text) {
+  let hash = 2166136261;
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash += (hash << 1) + (hash << 4) + (hash << 7) + (hash << 8) + (hash << 24);
+  }
+  return (hash >>> 0).toString(16).toUpperCase().padStart(8, "0");
+}
+
+function getDeviceCode() {
+  const seed = `${os.hostname()}|${userHome}|${os.platform()}|${os.arch()}`;
+  const hash = simpleHash(seed);
+  return `CPAN-${hash.slice(0, 4)}-${hash.slice(4, 8)}`;
+}
+
+function getFirstActivationCode() {
+  return `YC-${simpleHash(`${getDeviceCode()}|YUCHUAN`).slice(0, 4)}-${simpleHash(`${getDeviceCode()}|CPAN`).slice(0, 4)}`;
+}
+
+async function readActivation() {
+  try {
+    const text = await fsp.readFile(ACTIVATION_FILE, "utf8");
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+async function writeActivation(data) {
+  await fsp.mkdir(path.dirname(ACTIVATION_FILE), { recursive: true });
+  await fsp.writeFile(ACTIVATION_FILE, JSON.stringify(data, null, 2), "utf8");
+}
+
+async function activationStatus() {
+  const saved = await readActivation();
+  const deviceCode = getDeviceCode();
+  const expectedCode = getFirstActivationCode();
+  const activated = Boolean(saved && saved.deviceCode === deviceCode && saved.activationCode === expectedCode);
+
+  return {
+    ok: true,
+    activated,
+    deviceCode,
+    hint: "添加微信并发送设备码，领取这台电脑专用的激活码。"
+  };
+}
+
+async function activateFirstUse(req) {
+  const body = await readBody(req);
+  const code = String(body.code || "").trim().toUpperCase();
+  const expectedCode = getFirstActivationCode();
+
+  if (code !== expectedCode) {
+    return {
+      ok: false,
+      activated: false,
+      deviceCode: getDeviceCode(),
+      message: "激活码和这台电脑不匹配，请添加微信重新获取。"
+    };
+  }
+
+  await writeActivation({
+    deviceCode: getDeviceCode(),
+    activationCode: expectedCode,
+    activatedAt: new Date().toISOString()
+  });
+
+  return {
+    ok: true,
+    activated: true,
+    deviceCode: getDeviceCode(),
+    message: "激活成功，真实功能已解锁。"
+  };
 }
 
 function knownTargets() {
@@ -348,6 +424,8 @@ const server = http.createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://localhost:${PORT}`);
     if (url.pathname === "/api/health") return send(res, 200, { ok: true, warehouse: defaultWarehouse });
+    if (url.pathname === "/api/activation-status") return send(res, 200, await activationStatus());
+    if (url.pathname === "/api/activate-first-use" && req.method === "POST") return send(res, 200, await activateFirstUse(req));
     if (url.pathname === "/api/scan") return send(res, 200, await scan());
     if (url.pathname === "/api/clean-safe" && req.method === "POST") return send(res, 200, await cleanSafe());
     if (url.pathname === "/api/organize-files" && req.method === "POST") return send(res, 200, await organizeFiles());

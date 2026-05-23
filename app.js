@@ -17,6 +17,8 @@ const views = {
 };
 
 const navItems = [...document.querySelectorAll(".nav-item")];
+const API_BASE = "http://localhost:4317";
+
 const guideSteps = [
   {
     step: "首次使用 · 第 1 步",
@@ -38,8 +40,8 @@ const guideSteps = [
 let guideIndex = 0;
 let latestScanData = null;
 let processingStarted = false;
-
-const API_BASE = "http://localhost:4317";
+let firstUseActivated = false;
+let pendingProtectedAction = null;
 
 function formatBytes(bytes) {
   if (!bytes || bytes < 0) return "0B";
@@ -59,6 +61,44 @@ async function request(path, options = {}) {
   return response.json();
 }
 
+async function refreshActivationStatus() {
+  try {
+    const status = await request("/api/activation-status");
+    firstUseActivated = Boolean(status.activated);
+    const deviceCodeText = document.querySelector("#deviceCodeText");
+    if (deviceCodeText) deviceCodeText.textContent = status.deviceCode || "未获取";
+    return status;
+  } catch {
+    firstUseActivated = false;
+    const deviceCodeText = document.querySelector("#deviceCodeText");
+    if (deviceCodeText) deviceCodeText.textContent = "请从启动入口打开";
+    return { activated: false, deviceCode: "请从启动入口打开" };
+  }
+}
+
+async function requireFirstActivation(action) {
+  const status = await refreshActivationStatus();
+  if (status.activated || firstUseActivated) return true;
+
+  pendingProtectedAction = action || null;
+  openFirstActivationModal();
+  return false;
+}
+
+function openFirstActivationModal() {
+  const modal = document.querySelector("#firstActivationModal");
+  if (!modal) return;
+  modal.classList.add("show");
+  modal.setAttribute("aria-hidden", "false");
+}
+
+function closeFirstActivationModal() {
+  const modal = document.querySelector("#firstActivationModal");
+  if (!modal) return;
+  modal.classList.remove("show");
+  modal.setAttribute("aria-hidden", "true");
+}
+
 function showView(name) {
   if (!views[name]) return;
   Object.values(views).forEach(view => view.classList.remove("view-active"));
@@ -70,8 +110,17 @@ function showView(name) {
     navItems.forEach(item => item.classList.remove("active"));
   }
 
-  if (name === "checkup") runRealScan();
-  if (name === "processing") runRealProcessing();
+  if (name === "checkup") {
+    requireFirstActivation(() => runRealScan()).then(allowed => {
+      if (allowed) runRealScan();
+    });
+  }
+
+  if (name === "processing") {
+    requireFirstActivation(() => runRealProcessing()).then(allowed => {
+      if (allowed) runRealProcessing();
+    });
+  }
 }
 
 function updateGuide() {
@@ -84,46 +133,6 @@ function updateGuide() {
     dot.classList.toggle("active", index === guideIndex);
   });
 }
-
-document.querySelector("#nextGuide").addEventListener("click", () => {
-  if (guideIndex < guideSteps.length - 1) {
-    guideIndex += 1;
-    updateGuide();
-    return;
-  }
-  showView("save");
-});
-
-document.querySelector("#skipGuide").addEventListener("click", () => showView("save"));
-
-document.querySelectorAll("[data-go]").forEach(button => {
-  button.addEventListener("click", () => showView(button.dataset.go));
-});
-
-navItems.forEach(item => {
-  item.addEventListener("click", () => showView(item.dataset.nav));
-});
-
-document.querySelector("#finishScan").addEventListener("click", () => showView("results"));
-document.querySelector("#finishProcess").addEventListener("click", () => showView("report"));
-
-document.querySelectorAll(".advice-card input").forEach(input => {
-  input.addEventListener("change", () => {
-    input.closest(".advice-card").classList.toggle("selected", input.checked);
-  });
-});
-
-document.querySelectorAll("[data-file-tab]").forEach(tab => {
-  tab.addEventListener("click", () => {
-    const target = tab.dataset.fileTab;
-    document.querySelectorAll("[data-file-tab]").forEach(item => {
-      item.classList.toggle("active", item === tab);
-    });
-    document.querySelectorAll("[data-file-panel]").forEach(panel => {
-      panel.classList.toggle("active", panel.dataset.filePanel === target);
-    });
-  });
-});
 
 async function runRealScan() {
   const button = document.querySelector("#finishScan");
@@ -221,26 +230,73 @@ async function runRealProcessing() {
   }
 }
 
-document.querySelectorAll(".organize-real").forEach(button => {
-  button.addEventListener("click", async () => {
-    const oldText = button.textContent;
-    button.disabled = true;
-    button.textContent = "整理中...";
-    try {
-      const result = await request("/api/organize-files", { method: "POST" });
-      button.textContent = `已转移 ${formatBytes(result.movedBytes)}`;
-    } catch {
-      button.textContent = "请从本地运行入口打开";
-      setTimeout(() => {
-        button.disabled = false;
-        button.textContent = oldText;
-      }, 1800);
-      return;
-    }
+async function organizeRealFiles(button) {
+  const oldText = button.textContent;
+  button.disabled = true;
+  button.textContent = "整理中...";
+
+  try {
+    const result = await request("/api/organize-files", { method: "POST" });
+    button.textContent = `已转移 ${formatBytes(result.movedBytes)}`;
+  } catch {
+    button.textContent = "请从本地运行入口打开";
     setTimeout(() => {
       button.disabled = false;
       button.textContent = oldText;
-    }, 2200);
+    }, 1800);
+    return;
+  }
+
+  setTimeout(() => {
+    button.disabled = false;
+    button.textContent = oldText;
+  }, 2200);
+}
+
+document.querySelector("#nextGuide").addEventListener("click", () => {
+  if (guideIndex < guideSteps.length - 1) {
+    guideIndex += 1;
+    updateGuide();
+    return;
+  }
+  showView("save");
+});
+
+document.querySelector("#skipGuide").addEventListener("click", () => showView("save"));
+
+document.querySelectorAll("[data-go]").forEach(button => {
+  button.addEventListener("click", () => showView(button.dataset.go));
+});
+
+navItems.forEach(item => {
+  item.addEventListener("click", () => showView(item.dataset.nav));
+});
+
+document.querySelector("#finishScan").addEventListener("click", () => showView("results"));
+document.querySelector("#finishProcess").addEventListener("click", () => showView("report"));
+
+document.querySelectorAll(".advice-card input").forEach(input => {
+  input.addEventListener("change", () => {
+    input.closest(".advice-card").classList.toggle("selected", input.checked);
+  });
+});
+
+document.querySelectorAll("[data-file-tab]").forEach(tab => {
+  tab.addEventListener("click", () => {
+    const target = tab.dataset.fileTab;
+    document.querySelectorAll("[data-file-tab]").forEach(item => {
+      item.classList.toggle("active", item === tab);
+    });
+    document.querySelectorAll("[data-file-panel]").forEach(panel => {
+      panel.classList.toggle("active", panel.dataset.filePanel === target);
+    });
+  });
+});
+
+document.querySelectorAll(".organize-real").forEach(button => {
+  button.addEventListener("click", async () => {
+    if (!(await requireFirstActivation(() => organizeRealFiles(button)))) return;
+    organizeRealFiles(button);
   });
 });
 
@@ -254,6 +310,8 @@ const updateIntro = document.querySelector("#updateIntro");
 
 if (checkUpdateButton) {
   checkUpdateButton.addEventListener("click", async () => {
+    if (!(await requireFirstActivation(() => checkUpdateButton.click()))) return;
+
     checkUpdateButton.disabled = true;
     checkUpdateButton.textContent = "检查中...";
     try {
@@ -308,4 +366,74 @@ if (activateUpdateButton) {
   });
 }
 
+const firstActivationModal = document.querySelector("#firstActivationModal");
+const closeFirstActivationButton = document.querySelector("#closeFirstActivation");
+const copyDeviceCodeButton = document.querySelector("#copyDeviceCode");
+const confirmFirstActivationButton = document.querySelector("#confirmFirstActivation");
+const firstActivationCodeInput = document.querySelector("#firstActivationCode");
+const firstActivationMessage = document.querySelector("#firstActivationMessage");
+
+if (closeFirstActivationButton) {
+  closeFirstActivationButton.addEventListener("click", closeFirstActivationModal);
+}
+
+if (firstActivationModal) {
+  firstActivationModal.addEventListener("click", event => {
+    if (event.target === firstActivationModal) closeFirstActivationModal();
+  });
+}
+
+if (copyDeviceCodeButton) {
+  copyDeviceCodeButton.addEventListener("click", async () => {
+    const text = document.querySelector("#deviceCodeText").textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+      copyDeviceCodeButton.textContent = "已复制";
+    } catch {
+      copyDeviceCodeButton.textContent = "请手动复制";
+    }
+    setTimeout(() => {
+      copyDeviceCodeButton.textContent = "复制设备码";
+    }, 1600);
+  });
+}
+
+if (confirmFirstActivationButton) {
+  confirmFirstActivationButton.addEventListener("click", async () => {
+    const code = firstActivationCodeInput.value.trim();
+    if (!code) {
+      firstActivationMessage.textContent = "请先输入首次激活码。";
+      return;
+    }
+
+    confirmFirstActivationButton.disabled = true;
+    confirmFirstActivationButton.textContent = "激活中...";
+    try {
+      const result = await request("/api/activate-first-use", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code })
+      });
+
+      if (!result.activated) {
+        firstActivationMessage.textContent = result.message;
+        return;
+      }
+
+      firstUseActivated = true;
+      firstActivationMessage.textContent = result.message;
+      closeFirstActivationModal();
+      const action = pendingProtectedAction;
+      pendingProtectedAction = null;
+      if (action) action();
+    } catch {
+      firstActivationMessage.textContent = "暂时无法激活，请确认从启动入口打开。";
+    } finally {
+      confirmFirstActivationButton.disabled = false;
+      confirmFirstActivationButton.textContent = "立即激活";
+    }
+  });
+}
+
 updateGuide();
+refreshActivationStatus();

@@ -389,6 +389,30 @@
       </section>
     </section>
   </main>
+  <div class="activation-modal" id="firstActivationModal" aria-hidden="true">
+    <div class="activation-dialog">
+      <button class="modal-close" id="closeFirstActivation" aria-label="关闭">×</button>
+      <div class="activation-dialog-copy">
+        <span class="eyebrow">首次激活</span>
+        <h1>激活后即可使用真实清理功能</h1>
+        <p>未激活时可以查看所有页面。点击扫描、清理、文件整理、检查更新等真实功能时，需要先激活。</p>
+        <div class="device-code-box">
+          <span>你的设备码</span>
+          <strong id="deviceCodeText">生成中</strong>
+          <button class="btn small" id="copyDeviceCode">复制设备码</button>
+        </div>
+        <p class="muted-tip">扫码添加微信，把设备码发给我，我会给你这台电脑专用的激活码。</p>
+      </div>
+      <div class="activation-dialog-side">
+        <img src="assets/wechat-qr.png" alt="微信二维码">
+        <div class="activation-form">
+          <input id="firstActivationCode" type="text" placeholder="请输入首次激活码">
+          <button class="btn primary" id="confirmFirstActivation">立即激活</button>
+          <p id="firstActivationMessage">激活码和本机设备码匹配后，即可使用。</p>
+        </div>
+      </div>
+    </div>
+  </div>
   <script src="app.js"></script>
 </body>
 </html>
