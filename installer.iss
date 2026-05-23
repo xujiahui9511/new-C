@@ -2,7 +2,7 @@
 AppName=C盘安心管家
 AppVersion=1.2
 AppPublisher=屿川
-DefaultDirName={localappdata}\CpanCleaner
+DefaultDirName={userappdata}\CpanCleaner
 DefaultGroupName=C盘安心管家
 OutputDir=C:\Users\Administrator\Desktop\C盘安心管家安装器
 OutputBaseFilename=C盘安心管家-安装包-v1.2
