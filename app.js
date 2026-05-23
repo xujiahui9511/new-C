@@ -19,6 +19,13 @@ const views = {
 const navItems = [...document.querySelectorAll(".nav-item")];
 const API_BASE = "http://localhost:4317";
 
+function fitAppToWindow() {
+  const widthScale = window.innerWidth / 1360;
+  const heightScale = window.innerHeight / 860;
+  const scale = Math.min(widthScale, heightScale, 1);
+  document.documentElement.style.setProperty("--app-scale", scale.toFixed(4));
+}
+
 const guideSteps = [
   {
     step: "首次使用 · 第 1 步",
@@ -564,6 +571,8 @@ if (confirmFirstActivationButton) {
   });
 }
 
+fitAppToWindow();
+window.addEventListener("resize", fitAppToWindow);
 updateGuide();
 refreshActivationStatus();
 loadHomeState();
