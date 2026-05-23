@@ -19,6 +19,7 @@ const validActivationCodes = new Set([
 ]);
 
 let latestScan = null;
+let latestScanTime = 0;
 
 function logError(error) {
   const message = `[${new Date().toISOString()}] ${error && error.stack ? error.stack : error}\n`;
@@ -135,6 +136,11 @@ async function walkSize(root, options = {}) {
 }
 
 async function scan() {
+  const cacheAge = Date.now() - latestScanTime;
+  if (latestScan && cacheAge < 60 * 1000) {
+    return { ...latestScan, cached: true };
+  }
+
   const targets = knownTargets();
   const results = [];
 
@@ -174,6 +180,7 @@ async function scan() {
       appData: results.filter(item => item.kind === "appData").reduce((sum, item) => sum + item.bytes, 0)
     }
   };
+  latestScanTime = Date.now();
 
   return latestScan;
 }
@@ -275,14 +282,14 @@ async function checkUpdate() {
   const fallback = {
     ok: true,
     currentVersion: "1.0",
-    latestVersion: "1.1",
+    latestVersion: "1.2",
     requireActivation: true,
     updateTitle: "发现可更新版本",
     downloadUrl: "https://github.com/xujiahui9511/new-C/releases/latest",
     updateNotes: [
-      "真实读取 C 盘常见占用",
-      "低风险内容先转移到安心整理仓库",
-      "更新前需要输入激活码"
+      "扫描结果短时间内自动复用，减少等待",
+      "界面状态更清楚，更新流程更顺",
+      "已接入 GitHub 固定更新中心"
     ]
   };
 

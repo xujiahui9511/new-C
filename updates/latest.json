@@ -1,12 +1,12 @@
 {
   "currentVersion": "1.0",
-  "latestVersion": "1.1",
+  "latestVersion": "1.2",
   "requireActivation": true,
   "updateTitle": "发现可更新版本",
   "downloadUrl": "https://github.com/xujiahui9511/new-C/releases/latest",
   "updateNotes": [
-    "真实读取 C 盘常见占用",
-    "低风险内容先转移到安心整理仓库",
-    "更新前需要输入激活码"
+    "扫描结果短时间内自动复用，减少等待",
+    "界面状态更清楚，更新流程更顺",
+    "已接入 GitHub 固定更新中心"
   ]
 }
