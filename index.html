@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>C盘安心管家 - 高保真原型</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">C</div>
+        <div>
+          <strong>C盘安心管家</strong>
+          <span>清理前先保护</span>
+        </div>
+      </div>
+      <nav class="nav-list" aria-label="主导航">
+        <button class="nav-item active" data-nav="home"><span class="nav-icon disk"></span>首页</button>
+        <button class="nav-item" data-nav="checkup"><span class="nav-icon scan"></span>C盘体检</button>
+        <button class="nav-item" data-nav="files"><span class="nav-icon folder"></span>文件整理</button>
+        <button class="nav-item" data-nav="apps"><span class="nav-icon app"></span>软件搬家</button>
+        <button class="nav-item" data-nav="popup"><span class="nav-icon shield"></span>弹窗拦截</button>
+        <button class="nav-item" data-nav="restore"><span class="nav-icon restore"></span>恢复中心</button>
+        <button class="nav-item" data-nav="reports"><span class="nav-icon report"></span>报告记录</button>
+        <button class="nav-item" data-nav="updates"><span class="nav-icon update"></span>版本升级</button>
+        <button class="nav-item" data-nav="settings"><span class="nav-icon gear"></span>设置</button>
+      </nav>
+      <div class="mode-card">
+        <span>当前模式</span>
+        <strong>安心模式</strong>
+        <small>只默认选择低风险项目</small>
+      </div>
+    </aside>
+
+    <section class="content">
+      <section class="view view-active onboarding" id="view-onboarding">
+        <div class="onboarding-panel">
+          <div class="onboarding-copy">
+            <span class="eyebrow" id="guideStep">首次使用 · 第 1 步</span>
+            <h1 id="guideTitle">先保护，再清理</h1>
+            <p id="guideText">不会乱删系统文件。涉及文件转移、软件搬家和数据迁移时，都会先准备恢复入口，让用户有后悔空间。</p>
+            <div class="guide-dots" aria-label="引导进度">
+              <span class="dot active"></span>
+              <span class="dot"></span>
+              <span class="dot"></span>
+            </div>
+            <div class="action-row">
+              <button class="btn secondary" id="skipGuide">跳过引导</button>
+              <button class="btn primary" id="nextGuide">下一步</button>
+            </div>
+          </div>
+          <div class="safety-preview">
+            <div class="preview-ring">
+              <span>安全</span>
+              <strong>98%</strong>
+            </div>
+            <div class="preview-list">
+              <div><span class="status green"></span>系统关键内容不处理</div>
+              <div><span class="status blue"></span>处理前先给建议</div>
+              <div><span class="status amber"></span>高风险操作单独确认</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view setup-save" id="view-save">
+        <div class="page-header">
+          <span class="eyebrow">首次使用</span>
+          <h1>选择默认保存位置</h1>
+          <p>清理出来的可疑文件、转移文件和搬家内容，默认先放在这里，用户之后可以自行保留或删除。</p>
+        </div>
+        <div class="save-layout">
+          <div class="drive-card recommended">
+            <span class="badge">推荐</span>
+            <strong>D盘 · 安心整理仓库</strong>
+            <p>空间充足，适合放从 C 盘转移出来的文件和软件数据。</p>
+            <div class="drive-bar"><span style="width: 38%"></span></div>
+            <small>剩余 382GB / 共 512GB</small>
+          </div>
+          <div class="drive-card">
+            <strong>E盘 · 工作资料</strong>
+            <p>也可以改到其他盘，后续在设置里还能调整。</p>
+            <div class="drive-bar muted"><span style="width: 61%"></span></div>
+            <small>剩余 146GB / 共 375GB</small>
+          </div>
+        </div>
+        <div class="footer-actions">
+          <button class="btn secondary" data-go="onboarding">返回</button>
+          <button class="btn primary" data-go="home">确认并进入首页</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-home">
+        <div class="topbar">
+          <div>
+            <span class="eyebrow">首页</span>
+            <h1>今天先给 C 盘做个安心体检</h1>
+          </div>
+          <button class="btn ghost" data-go="restore">恢复中心</button>
+        </div>
+        <div class="hero-grid">
+          <div class="health-panel">
+            <div class="health-title">
+              <span>C盘状态</span>
+              <strong>偏紧张</strong>
+            </div>
+            <div class="meter">
+              <svg viewBox="0 0 120 120" aria-hidden="true">
+                <circle cx="60" cy="60" r="48"></circle>
+                <circle class="meter-value" cx="60" cy="60" r="48"></circle>
+              </svg>
+              <div><strong>87%</strong><span>已使用</span></div>
+            </div>
+            <p>剩余 18.4GB，建议先扫描可安全释放和可转移内容。</p>
+            <button class="btn primary wide" data-go="checkup">开始 C 盘体检</button>
+          </div>
+          <div class="quick-panel">
+            <h2>下一步建议</h2>
+            <div class="suggestion-line"><span class="rank">1</span><div><strong>扫描 C 盘占用</strong><p>先看清楚谁占空间，不会删除任何东西。</p></div></div>
+            <div class="suggestion-line"><span class="rank">2</span><div><strong>整理微信和下载文件</strong><p>预计能转移 28GB 到 D 盘。</p></div></div>
+            <div class="suggestion-line"><span class="rank">3</span><div><strong>查看可搬家的软件</strong><p>只处理能恢复、风险可控的软件。</p></div></div>
+          </div>
+          <div class="mini-report">
+            <h2>上次清理</h2>
+            <strong>释放 9.6GB</strong>
+            <span>转移 21.8GB · 7 天前</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-checkup">
+        <div class="page-header compact">
+          <span class="eyebrow">C盘体检</span>
+          <h1>扫描中，只查看，不处理</h1>
+          <p>正在识别基础垃圾、个人大文件、软件数据和可迁移软件。</p>
+        </div>
+        <div class="scan-card">
+          <div class="scan-progress">
+            <div class="progress-label"><strong>扫描进度</strong><span id="scanPercent">68%</span></div>
+            <div class="progress-track"><span id="scanBar"></span></div>
+          </div>
+          <div class="scan-grid">
+            <div class="scan-step done"><span></span><strong>基础垃圾</strong><p>已发现 6.8GB</p></div>
+            <div class="scan-step done"><span></span><strong>个人大文件</strong><p>已发现 24.1GB</p></div>
+            <div class="scan-step active"><span></span><strong>软件数据</strong><p>正在分析微信、钉钉</p><div class="mini-progress"><i></i></div></div>
+            <div class="scan-step pending"><span></span><strong>可迁移软件</strong><p>排队等待检测</p></div>
+          </div>
+          <div class="live-findings">
+            <div><span class="status green"></span>可放心清理 6.8GB</div>
+            <div><span class="status blue"></span>建议转移 31.4GB</div>
+            <div><span class="status amber"></span>需要确认 5 个项目</div>
+          </div>
+          <button class="btn primary" id="finishScan">查看扫描结果</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-results">
+        <div class="topbar">
+          <div>
+            <span class="eyebrow">扫描结果</span>
+            <h1>预计可改善 46.7GB 空间压力</h1>
+          </div>
+          <div class="pill-tabs">
+            <button class="active">综合推荐</button>
+            <button>占用大小</button>
+            <button>风险等级</button>
+          </div>
+        </div>
+        <div class="result-summary">
+          <div><span>可放心释放</span><strong>8.2GB</strong></div>
+          <div><span>建议转移</span><strong>32.5GB</strong></div>
+          <div><span>可搬家软件</span><strong>6.0GB</strong></div>
+        </div>
+        <div class="cards-list">
+          <article class="advice-card selected">
+            <input type="checkbox" checked aria-label="选择基础垃圾清理">
+            <div class="advice-main"><span class="risk green">低风险 · 可恢复</span><h2>基础垃圾清理</h2><p>临时文件、浏览器缓存、安装残留，建议优先处理。</p></div>
+            <strong>8.2GB</strong>
+            <button class="btn small">查看详情</button>
+          </article>
+          <article class="advice-card selected">
+            <input type="checkbox" checked aria-label="选择微信数据迁移">
+            <div class="advice-main"><span class="risk amber">需确认 · 可恢复</span><h2>微信文件迁移到 D 盘</h2><p>图片、视频和文件资料较多，迁移前会提醒关闭微信。</p></div>
+            <strong>18.4GB</strong>
+            <button class="btn small">查看详情</button>
+          </article>
+          <article class="advice-card">
+            <input type="checkbox" aria-label="选择下载文件整理">
+            <div class="advice-main"><span class="risk blue">建议整理 · 可恢复</span><h2>下载文件按类型转移</h2><p>安装包和压缩包占用较高，转移后可自行删除。</p></div>
+            <strong>14.1GB</strong>
+            <button class="btn small">查看详情</button>
+          </article>
+          <article class="advice-card">
+            <input type="checkbox" aria-label="选择软件搬家">
+            <div class="advice-main"><span class="risk red">高风险 · 需单独确认</span><h2>3 个软件可尝试搬家</h2><p>只建议搬可恢复的软件，处理前会做兼容检测。</p></div>
+            <strong>6.0GB</strong>
+            <button class="btn small">查看详情</button>
+          </article>
+        </div>
+        <div class="footer-actions sticky">
+          <span>已选择 2 项，预计释放 8.2GB，转移 18.4GB</span>
+          <button class="btn primary" data-go="confirm">下一步：确认处理</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-confirm">
+        <div class="page-header">
+          <span class="eyebrow">处理确认</span>
+          <h1>本次处理后，C 盘预计恢复到健康状态</h1>
+          <p>当前重点展示预计结果。涉及软件或数据迁移时，处理前仍会单独确认。</p>
+        </div>
+        <div class="confirm-board">
+          <div class="before-after">
+            <div><span>处理前</span><strong>剩余 18.4GB</strong><p>状态：偏紧张</p></div>
+            <div class="arrow"></div>
+            <div><span>处理后</span><strong>预计剩余 45.0GB</strong><p>状态：健康</p></div>
+          </div>
+          <div class="result-summary">
+            <div><span>预计释放</span><strong>8.2GB</strong></div>
+            <div><span>预计转移</span><strong>18.4GB</strong></div>
+            <div><span>可恢复项目</span><strong>2项</strong></div>
+          </div>
+        </div>
+        <div class="footer-actions">
+          <button class="btn secondary" data-go="results">返回调整</button>
+          <button class="btn primary" data-go="processing">开始处理</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-processing">
+        <div class="processing-panel">
+          <div class="processing-head">
+            <span class="eyebrow">正在处理</span>
+            <h1>正在转移微信文件，请保持电脑开机</h1>
+            <div class="progress-track large"><span></span></div>
+          </div>
+          <div class="process-layout">
+            <div class="step-list">
+              <div class="process-step done"><span></span><strong>准备恢复入口</strong><p>已完成</p></div>
+              <div class="process-step done"><span></span><strong>清理基础垃圾</strong><p>已释放 8.2GB</p></div>
+              <div class="process-step active"><span></span><strong>转移微信文件</strong><p>正在放入 D 盘安心整理仓库</p></div>
+              <div class="process-step"><span></span><strong>验证结果</strong><p>等待中</p></div>
+              <div class="process-step"><span></span><strong>生成报告</strong><p>等待中</p></div>
+            </div>
+            <div class="protection-card">
+              <h2>保护状态</h2>
+              <div><span class="status green"></span>恢复入口已准备</div>
+              <div><span class="status blue"></span>原始位置已记录</div>
+              <div><span class="status amber"></span>微信需要完成后验证</div>
+            </div>
+          </div>
+          <button class="btn primary" id="finishProcess">查看完成报告</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-report">
+        <div class="topbar">
+          <div>
+            <span class="eyebrow">完成报告</span>
+            <h1>C 盘已经从偏紧张变为健康</h1>
+          </div>
+          <button class="btn ghost">分享报告</button>
+        </div>
+        <div class="achievement-grid">
+          <div><span>释放空间</span><strong>8.2GB</strong></div>
+          <div><span>转移空间</span><strong>18.4GB</strong></div>
+          <div><span>健康变化</span><strong>87% → 64%</strong></div>
+          <div><span>处理项目</span><strong>2项</strong></div>
+        </div>
+        <div class="report-detail">
+          <h2>处理明细</h2>
+          <div class="detail-row"><span class="status green"></span><strong>基础垃圾清理</strong><p>临时文件、缓存、安装残留已处理，可恢复记录已保存。</p></div>
+          <div class="detail-row"><span class="status blue"></span><strong>微信文件迁移</strong><p>图片、视频、文件已转移到 D 盘安心整理仓库，原位置可从恢复中心找回。</p></div>
+        </div>
+        <div class="footer-actions">
+          <button class="btn secondary" data-go="restore">查看恢复中心</button>
+          <button class="btn primary" data-go="home">回到首页</button>
+        </div>
+      </section>
+
+      <section class="view" id="view-files">
+        <div class="page-header compact"><span class="eyebrow">文件整理</span><h1>把散落在 C 盘的大文件整理清楚</h1><p>可按来源、类型或建议查看。</p></div>
+        <div class="placeholder-board">
+          <div class="pill-tabs file-tabs"><button class="active" data-file-tab="advice">按建议</button><button data-file-tab="source">按来源</button><button data-file-tab="type">按类型</button></div>
+          <div class="file-tab-panel active" data-file-panel="advice">
+            <div class="file-row"><strong>下载目录安装包</strong><span>9.8GB · 建议转移</span><button class="btn small organize-real">处理</button></div>
+            <div class="file-row"><strong>桌面视频文件</strong><span>6.4GB · 建议确认</span><button class="btn small organize-real">处理</button></div>
+          </div>
+          <div class="file-tab-panel" data-file-panel="source">
+            <div class="file-row"><strong>下载文件夹</strong><span>18.3GB · 安装包、压缩包较多</span><button class="btn small organize-real">处理</button></div>
+            <div class="file-row"><strong>桌面</strong><span>7.6GB · 视频和临时文件较多</span><button class="btn small organize-real">处理</button></div>
+            <div class="file-row"><strong>微信文件</strong><span>14.2GB · 图片、视频、文件资料</span><button class="btn small">查看</button></div>
+          </div>
+          <div class="file-tab-panel" data-file-panel="type">
+            <div class="file-row"><strong>视频</strong><span>12.8GB · 建议转移到 D 盘</span><button class="btn small organize-real">处理</button></div>
+            <div class="file-row"><strong>压缩包</strong><span>6.9GB · 建议确认后整理</span><button class="btn small">处理</button></div>
+            <div class="file-row"><strong>安装包</strong><span>9.8GB · 多数可转移或删除</span><button class="btn small">处理</button></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-apps">
+        <div class="page-header compact"><span class="eyebrow">软件搬家</span><h1>只搬适合搬、能恢复的软件</h1><p>软件本体和软件数据会先检测，再决定是否建议处理。</p></div>
+        <div class="cards-list">
+          <article class="advice-card software-card"><div class="advice-main"><span class="risk amber">可尝试 · 可恢复</span><h2>剪映</h2><p>素材缓存较大，建议先迁移缓存数据。</p></div><strong>12.6GB</strong><button class="btn small">检测</button></article>
+          <article class="advice-card software-card"><div class="advice-main"><span class="risk red">谨慎 · 需确认</span><h2>大型设计软件</h2><p>软件本体较复杂，建议只给搬家方案。</p></div><strong>5.2GB</strong><button class="btn small">查看</button></article>
+        </div>
+      </section>
+
+      <section class="view" id="view-popup">
+        <div class="page-header compact"><span class="eyebrow">弹窗拦截</span><h1>按软件管理广告弹窗</h1><p>作为附加功能，先处理常见软件弹窗。</p></div>
+        <div class="placeholder-board">
+          <div class="file-row"><strong>某压缩工具</strong><span>最近 7 天弹出 12 次</span><label class="switch"><input type="checkbox" checked><span></span></label></div>
+          <div class="file-row"><strong>某下载工具</strong><span>最近 7 天弹出 8 次</span><label class="switch"><input type="checkbox"><span></span></label></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-restore">
+        <div class="topbar">
+          <div><span class="eyebrow">恢复中心</span><h1>所有重要处理都有记录</h1></div>
+          <div class="pill-tabs"><button class="active">按时间</button><button>按类型</button><button>只看可恢复</button></div>
+        </div>
+        <div class="restore-list">
+          <div class="restore-item"><span class="status blue"></span><div><strong>今天 23:18 · 微信文件迁移</strong><p>可一键恢复到原位置，目标位置 D盘安心整理仓库。</p></div><button class="btn small">恢复</button></div>
+          <div class="restore-item"><span class="status green"></span><div><strong>今天 23:16 · 基础垃圾清理</strong><p>部分记录可查看，部分已安全清理。</p></div><button class="btn small">查看</button></div>
+          <div class="restore-item muted"><span class="status amber"></span><div><strong>7 天前 · 下载文件整理</strong><p>可查看记录，用户已确认保留在 D 盘。</p></div><button class="btn small">查看</button></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-reports">
+        <div class="page-header compact"><span class="eyebrow">报告记录</span><h1>历史清理结果</h1><p>查看每次释放、转移和健康变化。</p></div>
+        <div class="restore-list">
+          <div class="restore-item report-entry"><div><strong>今天的完整报告</strong><p>释放 8.2GB，转移 18.4GB，处理 2 项。</p></div><button class="btn small">打开</button></div>
+          <div class="restore-item report-entry"><div><strong>7 天前的清理报告</strong><p>释放 9.6GB，转移 21.8GB，处理 5 项。</p></div><button class="btn small">打开</button></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-updates">
+        <div class="topbar">
+          <div>
+            <span class="eyebrow">版本升级</span>
+            <h1>发现可更新版本</h1>
+          </div>
+          <button class="btn ghost" id="checkUpdate">检查更新</button>
+        </div>
+        <div class="update-board">
+          <div class="update-status">
+            <span class="badge update-badge" id="updateState">需要激活码</span>
+            <strong id="latestVersion">体验版 1.1</strong>
+            <p id="updateIntro">新版包含真实扫描、安全清理、文件整理和更新激活流程。输入激活码后即可继续更新。</p>
+          </div>
+          <div class="update-notes">
+            <h2>本次优化</h2>
+            <div><span class="status green"></span>真实读取 C 盘常见占用</div>
+            <div><span class="status blue"></span>低风险内容先转移到安心整理仓库</div>
+            <div><span class="status amber"></span>更新前需要输入激活码</div>
+          </div>
+          <div class="activation-card">
+            <div>
+              <span class="eyebrow">领取激活码</span>
+              <h2>添加微信，获取更新激活码</h2>
+              <p>扫码添加后发送“C盘更新”，即可领取本次更新激活码。</p>
+            </div>
+            <img src="assets/wechat-qr.png" alt="微信二维码">
+          </div>
+          <div class="activation-card">
+            <div>
+              <span class="eyebrow">输入激活码</span>
+              <h2>验证通过后继续更新</h2>
+              <p id="activationMessage">请输入从微信获取的激活码。</p>
+            </div>
+            <div class="activation-form">
+              <input id="activationCode" type="text" placeholder="请输入更新激活码">
+              <button class="btn primary" id="activateUpdate">验证并更新</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <div class="page-header compact"><span class="eyebrow">设置</span><h1>让工具按你的习惯工作</h1><p>第一版包含模式、提醒和默认保存位置。</p></div>
+        <div class="settings-grid">
+          <div class="setting-card"><strong>模式设置</strong><p>安心模式、深度整理模式、高级模式</p><button class="btn small">调整</button></div>
+          <div class="setting-card"><strong>提醒设置</strong><p>默认不打扰，可开启 C 盘快满提醒和定期体检。</p><button class="btn small">调整</button></div>
+          <div class="setting-card"><strong>默认保存位置</strong><p>D盘 · 安心整理仓库</p><button class="btn small">修改</button></div>
+        </div>
+      </section>
+    </section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
