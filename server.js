@@ -7,7 +7,7 @@ const os = require("os");
 const PORT = 4317;
 const ROOT = __dirname;
 const LOG_FILE = path.join(ROOT, "server-error.log");
-const UPDATE_INFO_URL = "https://raw.githubusercontent.com/xujiahui9511/new-C/main/updates/latest.json";
+const UPDATE_INFO_URL = "https://api.github.com/repos/xujiahui9511/new-C/contents/updates/latest.json?ref=main";
 const userHome = os.homedir();
 const defaultWarehouse = fs.existsSync("D:\\")
   ? "D:\\C盘安心整理仓库"
@@ -294,9 +294,15 @@ async function checkUpdate() {
   };
 
   try {
-    const response = await fetch(`${UPDATE_INFO_URL}?t=${Date.now()}`);
+    const response = await fetch(`${UPDATE_INFO_URL}&t=${Date.now()}`, {
+      headers: { "User-Agent": "CpanCleanerUpdater" }
+    });
     if (!response.ok) return fallback;
-    const remote = await response.json();
+    const githubFile = await response.json();
+    const text = githubFile.content
+      ? Buffer.from(githubFile.content, "base64").toString("utf8")
+      : JSON.stringify(githubFile);
+    const remote = JSON.parse(text);
     return { ...fallback, ...remote, ok: true };
   } catch {
     return fallback;
