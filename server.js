@@ -118,7 +118,7 @@ async function addHistory(entry) {
 }
 
 async function diskState() {
-  const script = "Get-CimInstance Win32_LogicalDisk -Filter \\\"DeviceID='C:'\\\" | Select-Object DeviceID,Size,FreeSpace | ConvertTo-Json -Compress";
+  const script = "$d=Get-PSDrive -Name C; [pscustomobject]@{DeviceID='C:';Size=($d.Used+$d.Free);FreeSpace=$d.Free} | ConvertTo-Json -Compress";
   const output = await runPowerShell(script);
   const disk = JSON.parse(output);
   const totalBytes = Number(disk.Size || 0);
